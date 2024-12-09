@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Practice Settings{% endblock %}
+
+{% block content %}
+<h2>Practice Settings for {{ deck.name }}</h2>
+<form method="POST">
+    <!-- Dropdown for Show Side First -->
+    <div class="form-group">
+        <label for="side_first">Card Side Order</label>
+        <select class="form-control" id="side_first" name="side_first">
+            <option value="front_first">Show front first</option>
+            <option value="back_first">Show back first</option>
+            <option value="random">Random</option>
+        </select>
+    </div>
+
+    <!-- Randomize Cards Checkbox -->
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="random_order" name="random_order">
+        <label class="form-check-label" for="random_order">Randomize cards</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Start Practice</button>
+</form>
+{% endblock %}

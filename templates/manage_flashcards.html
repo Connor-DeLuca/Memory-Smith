@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Manage Flashcards{% endblock %}
+{% block content %}
+<h1>Manage Flashcards for {{ deck.name }}</h1>
+<form method="POST">
+    <div class="mb-3">
+        <label for="front" class="form-label">Front</label>
+        <input type="text" class="form-control" id="front" name="front" required>
+    </div>
+    <div class="mb-3">
+        <label for="back" class="form-label">Back</label>
+        <input type="text" class="form-control" id="back" name="back" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Flashcard</button>
+</form>
+<hr>
+<h2>Flashcards</h2>
+<ul class="list-group">
+    {% for flashcard in flashcards %}
+    <li class="list-group-item">
+        <strong>Front:</strong> {{ flashcard.front }}<br>
+        <strong>Back:</strong> {{ flashcard.back }}
+        <form action="{{ url_for('delete_flashcard', flashcard_id=flashcard.id) }}" method="post">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>        
+    </li>
+    {% endfor %}
+</ul>
+<hr>
+<h2>Import/Export</h2>
+<form method="POST" action="{{ url_for('import_csv', deck_id=deck.id) }}" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="file" class="form-label">Import Flashcards (CSV)</label>
+        <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+    </div>
+    <button type="submit" class="btn btn-success">Import</button>
+</form>
+<a href="{{ url_for('export_csv', deck_id=deck.id) }}" class="btn btn-warning mt-3">Export Flashcards</a>
+{% endblock %}

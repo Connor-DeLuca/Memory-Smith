@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1>Welcome to Memory Smith!</h1>
+<p>{% if 'user_id' in session %}{% else %}Please log in or sign up.{% endif %}</p>
+
+<!-- Include the decks template at the bottom -->
+ <!-- Show the decks section only if the user is logged in -->
+{% if 'user_id' in session %}
+    {% include 'decks.html' %}
+{% endif %}
+{% endblock %}

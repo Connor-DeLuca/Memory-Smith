@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}My Decks{% endblock %}
+
+{% block navbar %} {% endblock %}  <!-- Override the navbar block to hide the navbar on this page -->
+
+{% block content %}
+<h2>My Decks</h2>
+<a href="{{ url_for('create_deck') }}" class="btn btn-primary">Create New Deck</a>
+<ul class="list-group mt-3">
+    {% for deck in decks %}
+    <li class="list-group-item">
+        <h3>{{ deck.name }}</h3>
+        <p>{{ deck.description }}</p>
+        <a href="{{ url_for('delete_deck', deck_id=deck.id) }}" class="btn btn-danger btn-sm">Delete</a>
+        <a href="{{ url_for('manage_flashcards', deck_id=deck.id) }}" class="btn btn-primary btn-sm">Edit</a>
+        <!-- Button to go to the practice settings page -->
+        <a href="{{ url_for('practice_settings', deck_id=deck.id) }}" class="btn btn-success btn-sm">Practice</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

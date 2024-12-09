@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Practice - {{ deck.name }}{% endblock %}
+
+{% block content %}
+
+<div class="mt-3">
+    <a href="{{ url_for('view_decks') }}" class="btn btn-secondary" style="margin-top: 15px; margin-bottom: 15px;">Back to Decks</a>
+</div>
+
+<h2>Practice: {{ deck.name }}</h2>
+
+<div class="flashcard-container">
+    <!-- Show the current flashcard -->
+    <div class="flashcard" id="flashcard" style="display: flex; align-items: center; background-color: #f0f0f0; padding-left: 30px; padding-right: 30px; padding-top: 10px; padding-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); width: min-content; height: min-content;">
+        <p id="flashcard-text" style="margin: 0;">{{ flashcards[0].front }}</p> <!-- Initial front side -->
+    </div>
+
+    <!-- Buttons for flipping the card and navigating through the deck -->
+    <div class="mt-3">
+        <button id="flip-button" class="btn btn-primary">Flip Card</button>
+        <button id="previous-button" class="btn btn-secondary">Previous</button>
+        <button id="next-button" class="btn btn-secondary">Next</button>
+    </div>
+
+    <!-- Handle when all cards are finished and loop back -->
+    <p id="end-message" style="display: none; margin-top: 10px;" class="text-success">You've completed the deck. Starting over!</p>
+</div>
+
+<script>
+    const flashcardsData = {{ flashcards|tojson }};  // Passed as a JSON array of dictionaries
+    let currentIndex = 0;  // Start from the first card
+    let sideFirst = '{{ side_first }}';  // Use the selected side first setting
+    let showingFront = false;  // Initialize showingFront
+
+    // Function to get the side to show based on 'random' setting
+    function getSideToShow() {
+        if (sideFirst === 'random') {
+            return Math.random() < 0.5;  // Randomly choose front or back
+        }
+        return sideFirst === 'front_first';  // If 'front_first', show front side
+    }
+
+    // Set the initial side to show for the first card
+    showingFront = getSideToShow();
+
+    const flashcardText = document.getElementById('flashcard-text');
+    const flipButton = document.getElementById('flip-button');
+    const previousButton = document.getElementById('previous-button');
+    const nextButton = document.getElementById('next-button');
+    const endMessage = document.getElementById('end-message');
+
+    // Function to update the flashcard display
+    function updateFlashcard() {
+        flashcardText.textContent = flashcardsData[currentIndex][showingFront ? 'front' : 'back'];
+    }
+
+    // Initialize with the first card
+    updateFlashcard();
+
+    // Flip the card
+    flipButton.addEventListener('click', () => {
+        showingFront = !showingFront;
+        updateFlashcard();  // Update the flashcard display
+    });
+
+    // Go to the next card
+    nextButton.addEventListener('click', () => {
+        currentIndex++;
+        if (currentIndex >= flashcardsData.length) {
+            currentIndex = 0;  // Loop back to the first card
+            endMessage.style.display = 'block';  // Show the "starting over" message
+        } else {
+            endMessage.style.display = 'none';  // Hide the "starting over" message
+        }
+
+        // Set the side to show randomly if 'random' is selected, else follow settings
+        showingFront = getSideToShow();
+        updateFlashcard();
+    });
+
+    // Go to the previous card
+    previousButton.addEventListener('click', () => {
+        currentIndex--;
+        if (currentIndex < 0) {
+            currentIndex = flashcardsData.length - 1;  // Loop back to the last card
+            endMessage.style.display = 'block';  // Show the "starting over" message
+        } else {
+            endMessage.style.display = 'none';  // Hide the "starting over" message
+        }
+
+        // Set the side to show randomly if 'random' is selected, else follow settings
+        showingFront = getSideToShow();
+        updateFlashcard();
+    });
+</script>
+
+
+
+{% endblock %}
