@@ -5,6 +5,9 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
+from waitress import serve
+import requests
+import socket
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -269,7 +272,27 @@ def practice(deck_id):
     return render_template('practice.html', deck=deck, flashcards=flashcards_dict, side_first=side_first)
 
 
+def get_public_ip():
+    try:
+        response = requests.get('https://api.ipify.org')
+        if response.status_code == 200:
+            return response.text
+        else:
+            return "Failed to retrieve IP address"
+    except Exception as e:
+        return f"An error occurred: {str(e)}"
+    
+def get_private_ip():
+    try:
+        private_ip = socket.gethostbyname(socket.gethostname())
+        return private_ip
+    except Exception as e:
+        return f"An error occurred: {str(e)}"
+
+# This is what actually runs the server and tells it where to host it. It also makes sure we have a database and if not it makes a new one
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    print("Over your local wifi app is running on " + get_private_ip() + ":5000")
+    print("App is running on " + get_public_ip() + ":5000 over the internet assuming you set up port forwarding")
+    serve(app, host='0.0.0.0', port=5000, threads=8)
