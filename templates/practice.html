@@ -8,14 +8,14 @@
     <a href="{{ url_for('view_decks') }}" class="btn btn-secondary" style="margin-top: 15px; margin-bottom: 15px;">Back to Decks</a>
 </div>
 
-<div class="practice-title-div" style="display: flex; justify-content: center;"></div>
+<div class="practice-title-div" style="display: flex; justify-content: center; margin-top: 15px;">
     <h2>Practice: {{ deck.name }}</h2>
-
-<div class="div-to-center-flashcard-container" style="display: flex; align-items: center; justify-content: center; width: auto; height: 300px;">
+</div>
+<div class="div-to-center-flashcard-container" style="display: flex; align-items: center; justify-content: center; width: auto; height: 250px;">
     <div class="flashcard-container">
         <!-- Show the current flashcard -->
         <div class="flashcard" id="flashcard" style="display: flex; align-items: center; justify-content: center; background-color: #f0f0f0; padding-left: 50px; padding-right: 50px; padding-top: 50px; padding-bottom: 50px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); width: auto; height: auto;">
-            <p id="flashcard-text" style="margin: 0;">{{ flashcards[0].front }}</p> <!-- Initial front side -->
+            <h4 id="flashcard-text" style="margin: 0;">{{ flashcards[0].front }}</h4> <!-- Initial front side -->
         </div>
 
         <!-- Buttons for flipping the card and navigating through the deck -->
@@ -28,7 +28,9 @@
 </div>
 
 <!-- Handle when all cards are finished and loop back -->
-<p id="end-message" style="display: none; margin-top: 10px;" class="text-success">You've completed the deck. Starting over!</p>
+<div class="end-message-div" style="display: flex; justify-content: center;">
+    <p id="end-message" style="display: none; margin-top: 10px;" class="text-success">You've completed the deck. Starting over!</p>
+</div>
 
 <script>
     const flashcardsData = {{ flashcards|tojson }};  // Passed as a JSON array of dictionaries
