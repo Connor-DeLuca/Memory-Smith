@@ -8,11 +8,13 @@ from flask_sqlalchemy import SQLAlchemy
 from waitress import serve
 import requests
 import socket
+from datetime import timedelta
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['UPLOAD_FOLDER'] = 'uploads'
+app.permanent_session_lifetime = timedelta(weeks=52)
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
@@ -72,6 +74,7 @@ def signup():
 
         # Automatically log in the user
         session['user_id'] = new_user.id
+        session.permanent = True  # Make the session permanent
         flash('', 'clear')
         return redirect(url_for('home'))
     
@@ -86,6 +89,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
+            session.permanent = True  # Make the session permanent
             flash('', 'clear')
             return redirect(url_for('home'))
         flash('Invalid username or password.', 'danger')
