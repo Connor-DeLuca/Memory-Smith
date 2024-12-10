@@ -8,21 +8,6 @@
     <a href="{{ url_for('practice_settings', deck_id=deck.id) }}" class="btn btn-success btn-m" style="margin-top: 15px; margin-bottom: 15px;">Practice</a>
 </div>
 
-<!-- Form to update deck details -->
-<hr>
-<h2>Edit Deck Details</h2>
-<form method="POST">
-    <div class="mb-3">
-        <label for="deck_name" class="form-label">Deck Name</label>
-        <input type="text" class="form-control" id="deck_name" name="deck_name" value="{{ deck.name }}" required>
-    </div>
-    <div class="mb-3">
-        <label for="deck_description" class="form-label">Deck Description</label>
-        <textarea class="form-control" id="deck_description" name="deck_description" rows="3">{{ deck.description }}</textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Update Deck</button>
-</form>
-
 <!-- Flashcard Management Section -->
 <hr>
 <h2>Add New Flashcard</h2>
@@ -64,5 +49,20 @@
     <button type="submit" class="btn btn-success">Import</button>
 </form>
 <a href="{{ url_for('export_csv', deck_id=deck.id) }}" class="btn btn-warning mt-3">Export Flashcards</a>
+
+<!-- Form to update deck details -->
+<hr>
+<h2>Edit Deck Details</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label for="deck_name" class="form-label">Deck Name</label>
+        <input type="text" class="form-control" id="deck_name" name="deck_name" value="{{ deck.name }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="deck_description" class="form-label">Deck Description</label>
+        <textarea class="form-control" id="deck_description" name="deck_description" rows="3">{{ deck.description }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary" style="margin-bottom: 70px;">Update Deck</button>
+</form>
 
 {% endblock %}
