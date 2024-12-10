@@ -9,6 +9,7 @@ from waitress import serve
 import requests
 import socket
 from datetime import timedelta
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -30,6 +31,12 @@ class Deck(db.Model):
     name = db.Column(db.String(150), nullable=False)
     description = db.Column(db.String(250), nullable=True)
     user_id = db.Column(db.Integer, nullable=False)
+    last_practiced = db.Column(db.DateTime, nullable=True, default=datetime.utcnow())  # This will store the last practice time
+
+    # You can define a method to update the 'last_practiced' timestamp
+    def update_last_practiced(self):
+        self.last_practiced = datetime.utcnow()
+        db.session.commit()
     
     # Relationship to Flashcard
     flashcards = db.relationship('Flashcard', backref='deck', lazy=True)
@@ -52,11 +59,11 @@ class Flashcard(db.Model):
 @app.route('/')
 def home():
     if 'user_id' in session:
-        # Fetch decks for the logged-in user
-        decks = Deck.query.filter_by(user_id=session['user_id']).all()
+        # Fetch decks for the logged-in user, order them in the same way as in the view_decks route
+        decks = Deck.query.filter_by(user_id=session['user_id']).order_by(Deck.last_practiced.desc()).all()
     else:
         decks = []
-
+    
     return render_template('home.html', decks=decks)
 
 
@@ -110,7 +117,10 @@ def view_decks():
     if 'user_id' not in session:
         flash('Please log in to view your decks.', 'danger')
         return redirect(url_for('login'))
-    decks = Deck.query.filter_by(user_id=session['user_id']).all()
+    
+    # Order the decks by last_practiced, if it's None, order them last (using `desc` for descending)
+    decks = Deck.query.filter_by(user_id=session['user_id']).order_by(Deck.last_practiced.desc()).all()
+    
     return render_template('decks.html', decks=decks, show_navbar=False)
 
 @app.route('/decks/create', methods=['GET', 'POST'])
@@ -144,14 +154,25 @@ def manage_flashcards(deck_id):
         return redirect(url_for('home'))
 
     if request.method == 'POST':
-        front = request.form['front']
-        back = request.form['back']
-        new_flashcard = Flashcard(deck_id=deck_id, front=front, back=back)
-        db.session.add(new_flashcard)
-        db.session.commit()
+        # Handle deck updates
+        if 'deck_name' in request.form and 'deck_description' in request.form:
+            deck.name = request.form['deck_name']
+            deck.description = request.form['deck_description']
+            db.session.commit()
+            flash('Deck details updated successfully.', 'success')
+
+        # Handle new flashcard creation
+        if 'front' in request.form and 'back' in request.form:
+            front = request.form['front']
+            back = request.form['back']
+            new_flashcard = Flashcard(deck_id=deck_id, front=front, back=back)
+            db.session.add(new_flashcard)
+            db.session.commit()
+            flash('Flashcard added successfully.', 'success')
 
     flashcards = Flashcard.query.filter_by(deck_id=deck_id).all()
     return render_template('manage_flashcards.html', deck=deck, flashcards=flashcards)
+
 
 @app.route('/flashcards/<int:flashcard_id>/delete', methods=['POST'])
 def delete_flashcard(flashcard_id):
@@ -274,6 +295,9 @@ def practice(deck_id):
 
     # Fetch the flashcards for the deck
     flashcards = Flashcard.query.filter_by(deck_id=deck.id).all()
+    
+    # Update the last_practiced timestamp
+    deck.update_last_practiced()
 
     if practice_settings.get('random_order'):
         flashcards = random.sample(flashcards, len(flashcards))

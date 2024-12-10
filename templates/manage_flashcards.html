@@ -1,7 +1,31 @@
 {% extends 'base.html' %}
 {% block title %}Manage Flashcards{% endblock %}
 {% block content %}
+
 <h1>Manage Flashcards for {{ deck.name }}</h1>
+<div class="mt-3">
+    <a href="{{ url_for('home') }}" class="btn btn-secondary" style="margin-top: 15px; margin-bottom: 15px;">Back to Decks</a>
+    <a href="{{ url_for('practice_settings', deck_id=deck.id) }}" class="btn btn-success btn-m" style="margin-top: 15px; margin-bottom: 15px;">Practice</a>
+</div>
+
+<!-- Form to update deck details -->
+<hr>
+<h2>Edit Deck Details</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label for="deck_name" class="form-label">Deck Name</label>
+        <input type="text" class="form-control" id="deck_name" name="deck_name" value="{{ deck.name }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="deck_description" class="form-label">Deck Description</label>
+        <textarea class="form-control" id="deck_description" name="deck_description" rows="3">{{ deck.description }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Update Deck</button>
+</form>
+
+<!-- Flashcard Management Section -->
+<hr>
+<h2>Add New Flashcard</h2>
 <form method="POST">
     <div class="mb-3">
         <label for="front" class="form-label">Front</label>
@@ -13,6 +37,8 @@
     </div>
     <button type="submit" class="btn btn-primary">Add Flashcard</button>
 </form>
+
+<!-- List Flashcards -->
 <hr>
 <h2>Flashcards</h2>
 <ul class="list-group">
@@ -26,6 +52,8 @@
     </li>
     {% endfor %}
 </ul>
+
+<!-- Import/Export Section -->
 <hr>
 <h2>Import/Export</h2>
 <form method="POST" action="{{ url_for('import_csv', deck_id=deck.id) }}" enctype="multipart/form-data">
@@ -36,4 +64,5 @@
     <button type="submit" class="btn btn-success">Import</button>
 </form>
 <a href="{{ url_for('export_csv', deck_id=deck.id) }}" class="btn btn-warning mt-3">Export Flashcards</a>
+
 {% endblock %}
