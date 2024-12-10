@@ -63,13 +63,20 @@ def signup():
         if User.query.filter_by(username=username).first():
             flash('Username already exists.', 'danger')
             return redirect(url_for('signup'))
+        
+        # Hash the password and create the new user
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
         new_user = User(username=username, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
-        flash('Account created successfully! Please log in.', 'success')
-        return redirect(url_for('login'))
+
+        # Automatically log in the user
+        session['user_id'] = new_user.id
+        flash('', 'clear')
+        return redirect(url_for('home'))
+    
     return render_template('signup.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -79,7 +86,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
-            flash('Logged in successfully!', 'success')
+            flash('', 'clear')
             return redirect(url_for('home'))
         flash('Invalid username or password.', 'danger')
         return redirect(url_for('login'))
@@ -88,7 +95,6 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
-    flash('You have been logged out.', 'success')
     return redirect(url_for('home'))
 
 # Deck Management Routes
@@ -108,7 +114,6 @@ def create_deck():
         new_deck = Deck(name=name, description=description, user_id=session['user_id'])
         db.session.add(new_deck)
         db.session.commit()
-        flash('Deck created successfully!', 'success')
         return redirect(url_for('view_decks'))
     return render_template('create_deck.html')
 
@@ -121,7 +126,6 @@ def delete_deck(deck_id):
     Flashcard.query.filter_by(deck_id=deck.id).delete()
     db.session.delete(deck)
     db.session.commit()
-    flash('Deck deleted successfully!', 'success')
     return redirect(url_for('view_decks'))
 
 # Flashcard Management Routes
@@ -138,7 +142,6 @@ def manage_flashcards(deck_id):
         new_flashcard = Flashcard(deck_id=deck_id, front=front, back=back)
         db.session.add(new_flashcard)
         db.session.commit()
-        flash('Flashcard added successfully!', 'success')
 
     flashcards = Flashcard.query.filter_by(deck_id=deck_id).all()
     return render_template('manage_flashcards.html', deck=deck, flashcards=flashcards)
@@ -157,7 +160,6 @@ def delete_flashcard(flashcard_id):
     db.session.delete(flashcard)
     db.session.commit()  # Make sure to commit the changes
 
-    flash('Flashcard deleted successfully!', 'success')
 
     # Redirect to the flashcard management page of the deck
     return redirect(url_for('manage_flashcards', deck_id=deck.id))
@@ -186,7 +188,6 @@ def import_csv(deck_id):
                     db.session.add(new_flashcard)
 
             db.session.commit()
-            flash('Flashcards imported successfully!', 'success')
 
         except UnicodeDecodeError:
             flash('There was an error decoding the file. Please ensure it is in UTF-8 encoding.', 'danger')
