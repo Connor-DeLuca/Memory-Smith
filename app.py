@@ -30,6 +30,9 @@ class Deck(db.Model):
     name = db.Column(db.String(150), nullable=False)
     description = db.Column(db.String(250), nullable=True)
     user_id = db.Column(db.Integer, nullable=False)
+    
+    # Relationship to Flashcard
+    flashcards = db.relationship('Flashcard', backref='deck', lazy=True)
 
 class Flashcard(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -118,7 +121,7 @@ def create_deck():
         new_deck = Deck(name=name, description=description, user_id=session['user_id'])
         db.session.add(new_deck)
         db.session.commit()
-        return redirect(url_for('view_decks'))
+        return redirect(url_for('home'))
     return render_template('create_deck.html')
 
 @app.route('/decks/delete/<int:deck_id>')
@@ -126,11 +129,11 @@ def delete_deck(deck_id):
     deck = Deck.query.get_or_404(deck_id)
     if deck.user_id != session['user_id']:
         flash('You do not have permission to delete this deck.', 'danger')
-        return redirect(url_for('view_decks'))
+        return redirect(url_for('home'))
     Flashcard.query.filter_by(deck_id=deck.id).delete()
     db.session.delete(deck)
     db.session.commit()
-    return redirect(url_for('view_decks'))
+    return redirect(url_for('home'))
 
 # Flashcard Management Routes
 @app.route('/decks/<int:deck_id>/flashcards', methods=['GET', 'POST'])
@@ -138,7 +141,7 @@ def manage_flashcards(deck_id):
     deck = Deck.query.get_or_404(deck_id)
     if deck.user_id != session['user_id']:
         flash('You do not have permission to access this deck.', 'danger')
-        return redirect(url_for('view_decks'))
+        return redirect(url_for('home'))
 
     if request.method == 'POST':
         front = request.form['front']
@@ -158,7 +161,7 @@ def delete_flashcard(flashcard_id):
     deck = Deck.query.get(flashcard.deck_id)
     if deck and deck.user_id != session['user_id']:
         flash('You do not have permission to delete this flashcard.', 'danger')
-        return redirect(url_for('view_decks', deck_id=deck.id))
+        return redirect(url_for('home', deck_id=deck.id))
 
     # Delete the flashcard from the database
     db.session.delete(flashcard)
@@ -175,7 +178,7 @@ def import_csv(deck_id):
     deck = Deck.query.get_or_404(deck_id)
     if deck.user_id != session['user_id']:
         flash('You do not have permission to import into this deck.', 'danger')
-        return redirect(url_for('view_decks'))
+        return redirect(url_for('home'))
 
     file = request.files['file']
     if file and file.filename.endswith('.csv'):
@@ -196,14 +199,14 @@ def import_csv(deck_id):
         except UnicodeDecodeError:
             flash('There was an error decoding the file. Please ensure it is in UTF-8 encoding.', 'danger')
 
-    return redirect(url_for('view_decks', deck_id=deck_id))
+    return redirect(url_for('home', deck_id=deck_id))
 
 @app.route('/decks/<int:deck_id>/export')
 def export_csv(deck_id):
     deck = Deck.query.get_or_404(deck_id)
     if deck.user_id != session['user_id']:
         flash('You do not have permission to export this deck.', 'danger')
-        return redirect(url_for('view_decks'))
+        return redirect(url_for('home'))
 
     flashcards = Flashcard.query.filter_by(deck_id=deck_id).all()
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], f'deck_{deck_id}.csv')
@@ -227,8 +230,15 @@ def practice_settings(deck_id):
     if 'user_id' not in session:
         flash('Please log in to practice your decks.', 'danger')
         return redirect(url_for('login'))
+    
+    # Check if the deck is empty
+    if not deck.flashcards:
+        flash('Deck is empty. Please add some flashcards first.', 'warning')
+        decks = Deck.query.filter_by(user_id=session['user_id']).all()  # Fetch all decks for the user
+        return render_template('home.html', decks=decks)
 
     if request.method == 'POST':
+        flash('', 'clear')
         # Collect practice settings from the form
         side_first = request.form.get('side_first', 'front_first')  # Default to 'front_first'
         random_order = 'random_order' in request.form
@@ -260,7 +270,7 @@ def practice(deck_id):
 
     if practice_settings.get('deck_id') != deck.id:
         flash('Invalid practice settings.', 'danger')
-        return redirect(url_for('view_decks'))
+        return redirect(url_for('home'))
 
     # Fetch the flashcards for the deck
     flashcards = Flashcard.query.filter_by(deck_id=deck.id).all()
